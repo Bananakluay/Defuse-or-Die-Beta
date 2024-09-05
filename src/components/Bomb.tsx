@@ -4,7 +4,12 @@ import Wires from "./Wires";
 import { getInstructionsForCode, Instruction } from "../logic/Instruction";
 import SwitchPanel from "./SwitchPanel";
 import FusePanel from "./FusePanel";
-import '../styles/Bomb.css'
+import '../styles/Bomb.css';
+import { generateCode } from "../utils/generate";
+import { checkTimeCondition } from "../utils/timeCondition";
+import ElectronicPanel from "./ElectronicPanel";
+import PushButton from "./PushButton";
+
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
@@ -12,135 +17,255 @@ type Props = {
 
 function Bomb({ onDefuse, onExplode }: Props) {
   const [code, setCode] = useState(150);
+  const [previousCode, setPreviousCode] = useState<number | null>(null)
   const [timeLeft, setTimeLeft] = useState(300);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [failure, setFailure] = useState(0);
-  const [success, setSuccess] = useState(0);
-  const maxSuccess = 3;
-  const maxFailure = 3;
+  const [currentStep, setCurrentStep] = useState(0)
+  const [failure, setFailure] = useState(0)
+  const [success, setSuccess] = useState(0)
+  const [startTime, setStartTime] = useState<number>(0)
 
-  // Bomb components
-  const [wires, setWires] = useState<string[]>(["red", "blue", "green"]);
-  const [fuses, setFuses] = useState<string[]>(["F1", "F2", "F3"]);
-  const [switches, setSwitches] = useState<string[]>(["SB1", "SB2"]);
+  const maxSuccess = 2
+  const maxFailure = 3
+
+  // Function to generate a new code different from the previous one
+  const generateNewCode = () => {
+    let newCode;
+    do {
+      newCode = generateCode();
+    } while (newCode === previousCode);
+    setPreviousCode(code); // Update previous code
+    setCode(newCode); // Set new code
+  };
+
+  // Bomb components and their states
+  const [wires, setWires] = useState<string[]>(["red", "blue", "green", "yellow", "pink"]);
+  const [fuses] = useState<string[]>(["F1", "F2", "F3"])
+  const [eComps] = useState<string[]>(["C1", "C2", "T1", "T2"])
+  const [switches] = useState<string[]>(["SB1", "SB2"]);
 
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const [pulledEComps, setPulledEComps] = useState<string[]>([]);
+
+
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({
     SB1: true,
     SB2: false,
   });
 
-  const instructions: Instruction[] = code !== null ? getInstructionsForCode(code) : [];
-
-  const checkCurrentState = () => {
-    console.log(currentStep)
-    const instruction = instructions[currentStep];
-    if (!instruction) return; // No instruction at this step
-
-    // Check wires
-    if (instruction.action === "cut" && instruction.wireColor && cutWires.includes(instruction.wireColor)) {
-      console.log('is already cut skip to next step');
-      setCurrentStep(currentStep + 1);
-      return;
-    }
-
-    // Check fuses
-    if (instruction.action === "pull" && instruction.fuse && pulledFuses.includes(instruction.fuse)) {
-      console.log('is already pulled skip to next step');
-      setCurrentStep(currentStep + 1);
-      return;
-    }
-    // Check switches
-    const switchName = instruction.switchName;
-    if (switchName) {
-      if (
-        (instruction.action === "turnOnSwitch" && switchStates[switchName]) ||
-        (instruction.action === "turnOffSwitch" && !switchStates[switchName])
-
-      ) {
-        console.log('switch is already skip to next step');
-        setCurrentStep(currentStep + 1);
-        return;
-      }
-    }
-  };
-
-  useEffect(() => {
-    checkCurrentState();
-  }, [currentStep]);
-
+  // Success condition check
   const checkSuccess = () => {
-    console.log(currentStep, instructions.length);
-
     if (currentStep === instructions.length) {
       setSuccess(prev => prev + 1);
       if (success + 1 === maxSuccess) {
-        onDefuse(); // Successfully defused
+        onDefuse();
+      } {
+        generateNewCode()
+        setCurrentStep(0)
       }
     }
   };
 
-  useEffect(() => {
-    checkSuccess()
-  }, [currentStep])
-
+  // Failure condition check
   const checkFailure = () => {
     setFailure(prev => prev + 1);
     if (failure + 1 >= maxFailure) {
-      onExplode(); // Bomb exploded
+      onExplode();
+    } else {
+      generateNewCode()
     }
   };
+  // Update start time and check current state when the step changes
+  useEffect(() => {
+    setStartTime(timeLeft);
+    console.log(currentStep, instructions.length);
+    console.log(instructions[currentStep]);
+
+    checkCurrentState();
+    checkSuccess()
+  }, [currentStep]);
+
+  const instructions: Instruction[] = getInstructionsForCode(code) || [];
+
 
   const handleWireCut = (wireColor: string) => {
-    if (cutWires.includes(wireColor)) {
-      return;
-    }
-    setCutWires(prev => [...prev, wireColor]);
-    if (instructions[currentStep]?.action === "cut" && wireColor === instructions[currentStep].wireColor) {
-      setCurrentStep(prev => prev + 1);
-      checkSuccess()
-    } else {
-      checkFailure()
-    }
-  }
+    if (!cutWires.includes(wireColor)) {
+      const currentInstruction = instructions[currentStep];
 
-  const handleFusePull = (fuse: string) => {
-    setPulledFuses(prev => [...prev, fuse])
-    if (instructions[currentStep]?.action === "pull" && fuse === instructions[currentStep].fuse) {
-      if (pulledFuses.includes(fuse)) {
-        return;
-      }
-      setCurrentStep(prev => prev + 1)
-      checkSuccess()
-    } else {
-      checkFailure()
-    }
-  };
+      if (currentInstruction?.action === "cut" && currentInstruction.wireColor === wireColor) {
+        if (currentInstruction.condition?.time) {
+          const { type, value } = currentInstruction.condition.time;
+          if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+            console.log('Failed: Time constraint not met.');
+            checkFailure();
+            return; // Exit function to prevent further processing
+          }
+        }
 
-  const handleSwitchButton = (switchName: string) => {
-    const instruction = instructions[currentStep]
-    // Toggle the switch state every time the button is pressed
-    setSwitchStates(prev => ({ ...prev, [switchName]: !prev[switchName] }))
-
-    // Check if the current step matches the instruction
-    if (instruction?.switchName === switchName) {
-      if (
-        (instruction.action === "turnOnSwitch" && !switchStates[switchName]) ||
-        (instruction.action === "turnOffSwitch" && switchStates[switchName])
-      ) {
-        // If the action is correct, move to the next step
-        setCurrentStep(prev => prev + 1)
-        checkSuccess()
+        setCutWires(prev => [...prev, wireColor]);
+        setCurrentStep(prev => prev + 1);
+        checkSuccess();
       } else {
-        // If the action is incorrect, check failure
-        checkFailure()
+        checkFailure();
       }
-    } else {
-      // If the switch name doesn't match the current instruction, still toggle the switch
-      checkFailure()
     }
   };
+
+  // Handle fuse pull
+  const handleFusePull = (fuse: string) => {
+    if (!pulledFuses.includes(fuse)) {
+      setPulledFuses(prev => [...prev, fuse]);
+      const currentInstruction = instructions[currentStep];
+
+      if (currentInstruction?.action === "pull" && currentInstruction.fuse === fuse) {
+        if (currentInstruction.condition?.time) {
+          const { type, value } = currentInstruction.condition.time;
+          if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+            console.log('Failed: Time constraint not met.');
+            checkFailure();
+            return; // Exit function to prevent further processing
+          }
+        }
+
+        setCurrentStep(prev => prev + 1);
+        checkSuccess();
+      } else {
+        checkFailure();
+      }
+    }
+  };
+
+  // Handle Electronic component pull
+  const handleECompPull = (eComp: string) => {
+    if (!pulledFuses.includes(eComp)) {
+      setPulledFuses(prev => [...prev, eComp]);
+      const currentInstruction = instructions[currentStep];
+
+      if (currentInstruction?.action === "pull" && currentInstruction.eCompName === eComp) {
+        if (currentInstruction.condition?.time) {
+          const { type, value } = currentInstruction.condition.time;
+          if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+            console.log('Failed: Time constraint not met.');
+            checkFailure();
+            return; // Exit function to prevent further processing
+          }
+        }
+
+        setCurrentStep(prev => prev + 1);
+        checkSuccess();
+      } else {
+        checkFailure();
+      }
+    }
+  };
+
+
+  const handleButtonPressed = () => {
+    const currentInstruction = instructions[currentStep];
+    
+    console.log("hello");
+    
+    if (currentInstruction.action === "press") {
+      setIsPressed(true);
+      setStartTime(timeLeft);
+
+      if (currentInstruction.condition?.time) {
+        const { value } = currentInstruction.condition.time;
+        if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+          console.log('Failed: Time constraint not met.');
+          checkFailure();
+          return;
+        }
+      }
+      setCurrentStep(prev => prev + 1);
+      checkSuccess();
+    } else if (currentInstruction.action === "hold") {
+      setIsHolding(true);
+
+      if (currentInstruction.condition?.time) {
+        const { value } = currentInstruction.condition.time;
+        if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+          console.log('Failed: Time constraint not met.');
+          checkFailure();
+          return;
+        }
+      }
+    }
+  };
+
+  const handleButtonRelease = () => {
+    if (isHolding) {
+      const currentInstruction = instructions[currentStep];
+      if (currentInstruction.condition?.time) {
+        const { value } = currentInstruction.condition.time;
+        if (checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+          setIsHolding(false);
+          setCurrentStep(prev => prev + 1);
+          checkSuccess();
+        } else {
+          checkFailure();
+        }
+      }
+    }
+  };
+  // Handle switch toggle
+  const handleSwitchButton = (switchName: string) => {
+    setSwitchStates(prev => ({ ...prev, [switchName]: !prev[switchName] }));
+    const currentInstruction = instructions[currentStep];
+
+    if (currentInstruction?.switchName === switchName) {
+      if (
+        (currentInstruction.action === "turnOn" && !switchStates[switchName]) ||
+        (currentInstruction.action === "turnOff" && switchStates[switchName])
+      ) {
+        if (currentInstruction.condition?.time) {
+          const { type, value } = currentInstruction.condition.time;
+          if (!checkTimeCondition(startTime, timeLeft, value, currentInstruction.condition.time)) {
+            console.log('Failed: Time constraint not met.');
+            checkFailure();
+            return; // Exit function to prevent further processing
+          }
+        }
+
+        setCurrentStep(prev => prev + 1);
+        checkSuccess();
+      } else {
+        checkFailure();
+      }
+    }
+  };
+
+
+  // Check if the current game state meets the instruction for the current step
+  const checkCurrentState = () => {
+    const instruction = instructions[currentStep];
+    if (!instruction) return;
+
+    switch (instruction.action) {
+      case "cut":
+        if (instruction.wireColor && cutWires.includes(instruction.wireColor)) {
+          setCurrentStep((prev) => prev + 1);
+        }
+        break;
+      case "pull":
+        if (instruction.fuse && pulledFuses.includes(instruction.fuse)) {
+          setCurrentStep((prev) => prev + 1);
+        }
+        break;
+      case "turnOn":
+      case "turnOff":
+        if (
+          instruction.switchName &&
+          switchStates[instruction.switchName] === (instruction.action === "turnOn")
+        ) {
+          setCurrentStep((prev) => prev + 1);
+        }
+        break;
+    }
+  };
+
 
   return (
     <>
@@ -148,21 +273,13 @@ function Bomb({ onDefuse, onExplode }: Props) {
       <div className="success">Success: {success}</div>
       <div className="failure">Failure: {failure}</div>
       <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} />
-      <Wires
-        wires={wires}
-        cutWires={cutWires}
-        onWireCut={handleWireCut} />
-      <SwitchPanel
-        switches={switches}
-        switchStates={switchStates}
-        onSwitchToggle={handleSwitchButton}
-      />
-      <FusePanel 
-      fuses={fuses}
-      pulledFuses={pulledFuses}
-      onFusePull={handleFusePull}/>
+      <Wires wires={wires} cutWires={cutWires} onWireCut={handleWireCut} />
+      <SwitchPanel switches={switches} switchStates={switchStates} onSwitchToggle={handleSwitchButton} />
+      <FusePanel fuses={fuses} pulledFuses={pulledFuses} onFusePull={handleFusePull} />
+      <ElectronicPanel eComps={eComps} pulledEComps={pulledEComps} onECompPull={handleECompPull} />
+      <PushButton onPress={handleButtonPressed} onRelease={handleButtonRelease} />
     </>
   );
 }
 
-export default Bomb
+export default Bomb;
