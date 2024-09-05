@@ -25,3 +25,6 @@ Make sure you have the following installed on your system:
    cd Defuse-or-Die-Beta
    npm install
 3. **Run:**
+
+   ```bash
+   npm run dev
