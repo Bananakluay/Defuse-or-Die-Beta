@@ -3,7 +3,8 @@ import Timer from "./Timer";
 import Wires from "./Wires";
 import { getInstructionsForCode, Instruction } from "../logic/Instruction";
 import SwitchPanel from "./SwitchPanel";
-
+import FusePanel from "./FusePanel";
+import '../styles/Bomb.css'
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
@@ -39,23 +40,26 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     // Check wires
     if (instruction.action === "cut" && instruction.wireColor && cutWires.includes(instruction.wireColor)) {
+      console.log('is already cut skip to next step');
       setCurrentStep(currentStep + 1);
       return;
     }
 
     // Check fuses
     if (instruction.action === "pull" && instruction.fuse && pulledFuses.includes(instruction.fuse)) {
+      console.log('is already pulled skip to next step');
       setCurrentStep(currentStep + 1);
       return;
     }
-
     // Check switches
     const switchName = instruction.switchName;
     if (switchName) {
       if (
         (instruction.action === "turnOnSwitch" && switchStates[switchName]) ||
         (instruction.action === "turnOffSwitch" && !switchStates[switchName])
+
       ) {
+        console.log('switch is already skip to next step');
         setCurrentStep(currentStep + 1);
         return;
       }
@@ -67,7 +71,9 @@ function Bomb({ onDefuse, onExplode }: Props) {
   }, [currentStep]);
 
   const checkSuccess = () => {
-    if (currentStep === instructions.length - 1) {
+    console.log(currentStep, instructions.length);
+
+    if (currentStep === instructions.length) {
       setSuccess(prev => prev + 1);
       if (success + 1 === maxSuccess) {
         onDefuse(); // Successfully defused
@@ -93,29 +99,29 @@ function Bomb({ onDefuse, onExplode }: Props) {
     setCutWires(prev => [...prev, wireColor]);
     if (instructions[currentStep]?.action === "cut" && wireColor === instructions[currentStep].wireColor) {
       setCurrentStep(prev => prev + 1);
-      checkSuccess();
+      checkSuccess()
     } else {
-      checkFailure();
+      checkFailure()
     }
-  };
+  }
 
   const handleFusePull = (fuse: string) => {
-    setPulledFuses(prev => [...prev, fuse]);
+    setPulledFuses(prev => [...prev, fuse])
     if (instructions[currentStep]?.action === "pull" && fuse === instructions[currentStep].fuse) {
       if (pulledFuses.includes(fuse)) {
         return;
       }
-      setCurrentStep(prev => prev + 1);
-      checkSuccess();
+      setCurrentStep(prev => prev + 1)
+      checkSuccess()
     } else {
-      checkFailure();
+      checkFailure()
     }
   };
 
   const handleSwitchButton = (switchName: string) => {
-    const instruction = instructions[currentStep];
+    const instruction = instructions[currentStep]
     // Toggle the switch state every time the button is pressed
-    setSwitchStates(prev => ({ ...prev, [switchName]: !prev[switchName] }));
+    setSwitchStates(prev => ({ ...prev, [switchName]: !prev[switchName] }))
 
     // Check if the current step matches the instruction
     if (instruction?.switchName === switchName) {
@@ -124,15 +130,15 @@ function Bomb({ onDefuse, onExplode }: Props) {
         (instruction.action === "turnOffSwitch" && switchStates[switchName])
       ) {
         // If the action is correct, move to the next step
-        setCurrentStep(prev => prev + 1);
-        checkSuccess();
+        setCurrentStep(prev => prev + 1)
+        checkSuccess()
       } else {
         // If the action is incorrect, check failure
-        checkFailure();
+        checkFailure()
       }
     } else {
       // If the switch name doesn't match the current instruction, still toggle the switch
-      checkFailure();
+      checkFailure()
     }
   };
 
@@ -142,14 +148,21 @@ function Bomb({ onDefuse, onExplode }: Props) {
       <div className="success">Success: {success}</div>
       <div className="failure">Failure: {failure}</div>
       <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} />
-      <Wires wires={wires} onWireCut={handleWireCut} />
+      <Wires
+        wires={wires}
+        cutWires={cutWires}
+        onWireCut={handleWireCut} />
       <SwitchPanel
         switches={switches}
         switchStates={switchStates}
         onSwitchToggle={handleSwitchButton}
       />
+      <FusePanel 
+      fuses={fuses}
+      pulledFuses={pulledFuses}
+      onFusePull={handleFusePull}/>
     </>
   );
 }
 
-export default Bomb;
+export default Bomb

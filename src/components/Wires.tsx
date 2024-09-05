@@ -1,7 +1,8 @@
 import '../styles/Wires.css';
 
 type Props = {
-  wires: string[];
+  wires: string[]
+  cutWires: string[]
   onWireCut: (wireColor: string) => void;
 };
 

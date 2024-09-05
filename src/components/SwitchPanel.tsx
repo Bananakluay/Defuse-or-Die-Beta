@@ -7,18 +7,19 @@ type Props = {
 };
 
 function SwitchPanel({ switches, onSwitchToggle, switchStates }: Props) {
-  //console.log('SwitchPanel props:', { switches, switchStates });
-
   return (
     <div className="switch-container">
       {switches.map(switchName => (
         <div key={switchName} className="switch-item">
           <label>
+            <span className="switch-labels">
+            </span>
             <input
               type="checkbox"
               checked={switchStates[switchName] || false}
               onChange={() => onSwitchToggle(switchName)}
             />
+            <span className="switch-slider"></span>
             {switchName}
           </label>
         </div>

@@ -9,9 +9,12 @@ export type Instruction = {
 
 const instructionsByCode: Record<number, Instruction[]> = {
   150: [
-    { action: 'turnOnSwitch', switchName: 'SB1' },
+    //{ action: 'turnOnSwitch', switchName: 'SB1' },
     { action: 'cut', wireColor: 'red' },
-    { action: 'turnOnSwitch', switchName: 'SB2' },
+    { action: 'cut', wireColor: 'blue' },
+    { action: 'turnOnSwitch', switchName: 'SB1' },
+    { action: 'pull', switchName: 'F1' },
+
   ],
   220: [
     {action: "turnOffSwitch", switchName: "SB1"},

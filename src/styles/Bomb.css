@@ -22,18 +22,6 @@
   margin-bottom: 20px;
 }
 
-.wires {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.fuse-panel {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
 p {
   font-size: 1.2rem;
   color: #0f0;
