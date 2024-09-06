@@ -11,15 +11,18 @@ const PushButton: React.FC<Props> = ({ onPress, onRelease }) => {
   const [isHolding, setIsHolding] = useState(false);
 
   const handleMouseDown = () => {
+    console.log('Mouse Down');
+
     setIsPressed(true);
     onPress();
   };
 
   const handleMouseUp = () => {
+    console.log('Mouse Up');
     if (isHolding) {
       setIsHolding(false);
       onRelease();
-    } 
+    }
     setIsPressed(false);
   };
 

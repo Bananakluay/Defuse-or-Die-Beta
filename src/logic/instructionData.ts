@@ -21,6 +21,12 @@ export const instructionData: Record<number, Instruction[]> = {
         time: { type: 'at', value: 5 }
       }
     },
+    {
+      action: 'turnOn', switchName: 'SB2',
+      condition: {
+        time: { type: 'at', value: 5 }
+      }
+    },
   ],
   150: [
     { action: 'cut', wireColor: 'red' },
