@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import Timer from "./Timer";
 import Wires from "./Wires";
-import { getInstructionsForCode, Instruction } from "../logic/Instruction";
+import { getInstructionsForCode, Instruction, TimeCondition } from "../logic/Instruction";
 import SwitchPanel from "./SwitchPanel";
 import FusePanel from "./FusePanel";
 import '../styles/Bomb.css'
 import { generateCode } from "../utils/generate";
 import ElectronicPanel from "./ElectronicPanel";
-import { checkTimeCondition } from "../utils/timeCondition";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
@@ -22,7 +21,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const [success, setSuccess] = useState(0);
   const [startTime, setStartTime] = useState<number>(0)
   const maxSuccess = 3;
-  const maxFailure = 3;
+  const maxFailure = 5;
 
   // Bomb components
   const [wires] = useState<string[]>(["red", "blue", "green", "black", "pink"]);
@@ -32,7 +31,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
-  const [pulledEComps, setPulledEComps] = useState<string[]>([]);
+  const [pulledEComps] = useState<string[]>([]);
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({
     SB1: true,
     SB2: false,
@@ -42,10 +41,11 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const generateNewCode = () => {
     let newCode;
     do {
-      newCode = generateCode()
+      newCode = generateCode();
     } while (previousCodes.includes(newCode));
-    setPreviousCodes(prev => [...prev, code]); // Update previous code
-    setCode(newCode); // Set new code
+
+    setPreviousCodes(prev => [...prev, newCode]); // Add the new code to previous codes
+    setCode(newCode); // Set the new code
   };
 
   const instructions: Instruction[] = code !== null ? getInstructionsForCode(code) : [];
@@ -108,19 +108,29 @@ function Bomb({ onDefuse, onExplode }: Props) {
   };
 
   useEffect(() => {
+
     console.log(instructions[currentStep]);
     setStartTime(timeLeft)
     checkCurrentState()
     checkSuccess()
+    console.log('code', code);
+
   }, [currentStep]);
 
+  // current instruction has time withIn
   useEffect(() => {
     const timeCondition = instructions[currentStep].condition?.time
-    if (timeCondition && !checkTimeCondition(startTime, timeLeft, timeCondition.value, timeCondition.type)) {
-      checkFailure()
+    if (timeCondition && timeCondition.type === 'withIn') {
+      if (timeLeft <= startTime - timeCondition.value) {
+        checkFailure()
+      }
     }
 
   }, [timeLeft])
+
+  const atTimeCondition = (timeCondition: TimeCondition) => {
+    return timeLeft.toString().includes(timeCondition.value.toString())
+  }
 
 
   const handleWireCut = (wireColor: string) => {
@@ -131,6 +141,11 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     const instruction = instructions[currentStep]
     if (instruction?.action === "cut" && wireColor === instruction.wireColor) {
+      const timeCondition = instruction.condition?.time
+      if (timeCondition?.type === 'at' && !atTimeCondition(timeCondition)) {
+        checkFailure()
+        return
+      }
       setCurrentStep(prev => prev + 1);
       checkSuccess()
     } else {
@@ -143,7 +158,15 @@ function Bomb({ onDefuse, onExplode }: Props) {
       return;
     }
     setPulledFuses(prev => [...prev, fuseName])
-    if (instructions[currentStep]?.action === "pull" && fuseName === instructions[currentStep].fuseName) {
+
+    const instruction = instructions[currentStep]
+    if (instruction?.action === "pull" && fuseName === instruction.fuseName) {
+      const timeCondition = instruction.condition?.time
+      if (timeCondition?.type === 'at' && !atTimeCondition(timeCondition)) {
+        checkFailure()
+        return
+      }
+
       setCurrentStep(prev => prev + 1)
       checkSuccess()
     } else {
@@ -158,7 +181,14 @@ function Bomb({ onDefuse, onExplode }: Props) {
       return;
     }
     setPulledFuses(prev => [...prev, eCompName]);
-    if (instructions[currentStep]?.action === "pull" && eCompName === instructions[currentStep].eCompName) {
+
+    const instruction = instructions[currentStep]
+    if (instruction?.action === "pull" && eCompName === instruction.eCompName) {
+      const timeCondition = instruction.condition?.time
+      if (timeCondition?.type === 'at' && !atTimeCondition(timeCondition)) {
+        checkFailure()
+        return
+      }
       setCurrentStep(prev => prev + 1);
       checkSuccess();
     } else {
@@ -167,15 +197,21 @@ function Bomb({ onDefuse, onExplode }: Props) {
   }
 
   const handleSwitchButton = (switchName: string) => {
-    // Toggle the switch state every time the button is pressed
+
     setSwitchStates(prev => ({ ...prev, [switchName]: !prev[switchName] }))
 
-    // Check if the current step matches the instruction
-    if (instructions[currentStep]?.switchName === switchName) {
+    const instruction = instructions[currentStep]
+    if (instruction?.switchName === switchName) {
       if (
-        (instructions[currentStep].action === "turnOn" && !switchStates[switchName]) ||
-        (instructions[currentStep].action === "turnOff" && switchStates[switchName])
+        (instruction.action === "turnOn" && !switchStates[switchName]) ||
+        (instruction.action === "turnOff" && switchStates[switchName])
       ) {
+        const timeCondition = instruction.condition?.time
+        if (timeCondition?.type === 'at' && !atTimeCondition(timeCondition)) {
+          checkFailure()
+          return
+        }
+
         // If the action is correct, move to the next step
         setCurrentStep(prev => prev + 1)
         checkSuccess()

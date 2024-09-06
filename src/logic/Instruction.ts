@@ -3,7 +3,7 @@ import { instructionData } from './instructionData.ts'
 export type ActionType = 'cut' | 'press' | 'hold' | 'release' | 'pull' | 'turnOn' | 'turnOff';
 
 export type TimeCondition = {
-  type: 'before' | 'after' | 'at';
+  type: 'withIn' | 'at';
   value: number;
 }
 export type Instruction = {

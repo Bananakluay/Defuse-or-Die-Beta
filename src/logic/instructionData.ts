@@ -6,17 +6,17 @@ export const instructionData: Record<number, Instruction[]> = {
     {
       action: 'cut', wireColor: 'blue',
       condition: {
-        time: { type: 'before', value: 5 }
+        time: { type: 'withIn', value: 5 }
       }
     },
     {
-      action: 'cut', wireColor: 'green',
+      action: 'turnOn', switchName: 'SB1',
       condition: {
-        time: { type: 'after', value: 5 }
+        time: { type: 'at', value: 5 }
       }
     },
     {
-      action: 'cut', wireColor: 'black',
+      action: 'pull', fuseName: 'F1',
       condition: {
         time: { type: 'at', value: 5 }
       }
