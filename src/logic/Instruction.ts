@@ -1,5 +1,7 @@
 import { instructionData } from '../data/instructionData.ts'
 
+
+
 export type ActionType =
   'cut' |
   'press' |
@@ -14,6 +16,16 @@ export type TimeCondition = {
   type: 'withIn' | 'at';
   value: number;
 }
+
+
+export type SerialCondition = {
+  contains?: string;  
+  even?: boolean;    
+  startsWith?: string; 
+  endsWith?: string;  
+  notContains?: string;
+};
+
 export type Instruction = {
   action: ActionType;
   wireColor?: string;
@@ -23,8 +35,8 @@ export type Instruction = {
   pushButtonName?: string;
   keyNum?: string;
   condition?: {
-    time: TimeCondition
-    //other
+    time?: TimeCondition
+    serialNumber?: SerialCondition
   }
 };
 

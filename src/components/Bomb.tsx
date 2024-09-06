@@ -9,6 +9,7 @@ import { generateCode } from "../utils/generate";
 import ElectronicPanel from "./ElectronicPanel";
 import PushButton from "./PushButton";
 import Numpad from "./Numpad";
+import { checkTimeCondition } from "../logic/condition";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
@@ -52,19 +53,6 @@ function Bomb({ onDefuse, onExplode }: Props) {
   };
 
   const instructions: Instruction[] = code !== null ? getInstructionsForCode(code) : [];
-
-  // Helper to check if time conditions are met
-  const checkTimeCondition = (timeCondition: TimeCondition | undefined) => {
-    if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.value) {
-      return false;
-    }
-    if (timeCondition?.type === 'at' && !timeLeft.toString().includes(timeCondition.value.toString())) {
-      console.log(timeLeft, timeCondition.value);
-      return false;
-    }
-    return true;
-  };
-
   const handleSuccess = () => {
     console.log(currentStep, instructions.length);
 
@@ -143,7 +131,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
   useEffect(() => {
     const timeCondition = instructions[currentStep].condition?.time
     if (timeCondition && timeCondition.type === 'withIn') {
-      if (!checkTimeCondition(timeCondition)) {
+      if (!checkTimeCondition(timeCondition, timeLeft, startTime)) {
         handleFailure()
       }
     }
@@ -157,7 +145,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     const instruction = instructions[currentStep]
     const valid = instruction?.action === "cut" && wireColor === instruction.wireColor
-    validateStep(valid && checkTimeCondition(instruction.condition?.time))
+    validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime))
   }
 
   const handleFusePull = (fuseName: string) => {
@@ -167,7 +155,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     const instruction = instructions[currentStep]
     const valid = instruction?.action === "pull" && fuseName === instruction.fuseName;
-    validateStep(valid && checkTimeCondition(instruction.condition?.time));
+    validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
   }
 
   const handleECompPull = (eCompName: string) => {
@@ -177,7 +165,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     const instruction = instructions[currentStep];
     const valid = instruction?.action === "pull" && eCompName === instruction.eCompName;
-    validateStep(valid && checkTimeCondition(instruction.condition?.time));
+    validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
   }
 
   const handleSwitchButton = (switchName: string) => {
@@ -189,14 +177,14 @@ function Bomb({ onDefuse, onExplode }: Props) {
       (instruction.action === "turnOn" && !switchStates[switchName]) ||
       (instruction.action === "turnOff" && switchStates[switchName])
     )
-    validateStep(valid && checkTimeCondition(instruction.condition?.time));
+    validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
   }
 
   const handleButtonPressed = () => {
     const instruction = instructions[currentStep]
     const timeCondition = instruction.condition?.time
     if (instruction.action === "press") {
-      validateStep(checkTimeCondition(timeCondition))
+      validateStep(checkTimeCondition(timeCondition, timeLeft, startTime))
     } else if (instruction.action === "hold") {
       setStartTime(timeLeft)
     } else {
@@ -208,7 +196,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
     const instruction = instructions[currentStep]
     const timeCondition = instruction.condition?.time
     if (timeCondition && timeCondition.type === 'at') {
-      validateStep(checkTimeCondition(timeCondition))
+      validateStep(checkTimeCondition(timeCondition, timeLeft, startTime))
     } else {
       validateStep(true)
     }
