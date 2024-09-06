@@ -1,22 +1,23 @@
 import { useState, useEffect } from "react";
 import Timer from "./Timer";
 import Wires from "./Wires";
-import { getInstructionsForCode, Instruction, TimeCondition } from "../logic/Instruction";
+import { getInstructionsForCode, Instruction } from "../logic/Instruction";
 import SwitchPanel from "./SwitchPanel";
 import FusePanel from "./FusePanel";
 import '../styles/Bomb.css'
-import { generateCode } from "../utils/generate";
+import { generateCode, generateSerialNumber } from "../utils/generate";
 import ElectronicPanel from "./ElectronicPanel";
 import PushButton from "./PushButton";
 import Numpad from "./Numpad";
-import { checkTimeCondition } from "../logic/condition";
+import { checkSerialCondition, checkTimeCondition } from "../logic/Condition";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
 };
 
 function Bomb({ onDefuse, onExplode }: Props) {
-  const [code, setCode] = useState(150)
+  const [code, setCode] = useState(0)
+  const [serialNumber, setSerialNumber] = useState<string>("SA1234");
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(300);
   const [currentStep, setCurrentStep] = useState(0);
@@ -53,6 +54,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
   };
 
   const instructions: Instruction[] = code !== null ? getInstructionsForCode(code) : [];
+
   const handleSuccess = () => {
     console.log(currentStep, instructions.length);
 
@@ -85,41 +87,66 @@ function Bomb({ onDefuse, onExplode }: Props) {
   };
 
   const autoSkip = () => {
-    console.log(currentStep)
+    console.log(currentStep);
+
     const instruction = instructions[currentStep];
     if (!instruction) return; // No instruction at this step
 
-    // Check wires
-    if (instruction.action === "cut" && instruction.wireColor && cutWires.includes(instruction.wireColor)) {
-      console.log('is already cut skip to next step');
+    console.log(instruction.condition?.serial);
+
+    // Check serial number condition
+    if (instruction.condition?.serial && !checkSerialCondition(instruction.condition.serial, serialNumber)) {
+      console.log('Serial number condition not met, skipping to next step');
       setCurrentStep(prev => prev + 1);
       return;
     }
 
-    // Check fuses
-    if (instruction.action === "pull" && instruction.fuseName && pulledFuses.includes(instruction.fuseName)) {
-      console.log('is already pulled skip to next step');
-      setCurrentStep(prev => prev + 1);
-      return;
+    // Check wire cut condition
+    if (instruction.action === "cut" && instruction.wireColor) {
+      if (cutWires.includes(instruction.wireColor)) {
+        console.log('Wire already cut, skipping to next step');
+        setCurrentStep(prev => prev + 1);
+        return;
+      }
     }
-    // Check switches
+
+    // Check fuse pull condition
+    if (instruction.action === "pull" && instruction.fuseName) {
+      if (pulledFuses.includes(instruction.fuseName)) {
+        console.log('Fuse already pulled, skipping to next step');
+        setCurrentStep(prev => prev + 1);
+        return;
+      }
+    }
+
+    // Check eComp pull condition
+    if (instruction.action === "pull" && instruction.eCompName) {
+      if (pulledEComps.includes(instruction.eCompName)) {
+        console.log('eComp already pulled, skipping to next step');
+        setCurrentStep(prev => prev + 1);
+        return;
+      }
+    }
+
+    // Check switch state
     const switchName = instruction.switchName;
     if (switchName) {
       if (
         (instruction.action === "turnOn" && switchStates[switchName]) ||
         (instruction.action === "turnOff" && !switchStates[switchName])
-
       ) {
-        console.log('switch is already skip to next step');
+        console.log('Switch state is valid, skipping to next step');
         setCurrentStep(prev => prev + 1);
         return;
       }
     }
+
+    console.log('No skip conditions met, staying on current step');
   };
 
   useEffect(() => {
-
     console.log(instructions[currentStep]);
+    
     setStartTime(timeLeft)
     autoSkip()
     handleSuccess()
@@ -129,7 +156,8 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
   // current instruction has time withIn
   useEffect(() => {
-    const timeCondition = instructions[currentStep].condition?.time
+    const instruction = instructions[currentStep]
+    const timeCondition = instruction.condition?.time
     if (timeCondition && timeCondition.type === 'withIn') {
       if (!checkTimeCondition(timeCondition, timeLeft, startTime)) {
         handleFailure()
@@ -212,6 +240,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
       <div className="code">Code: {code}</div>
       <div className="success">Success: {success}</div>
       <div className="failure">Failure: {failure}</div>
+      <div className="seirialNumber">SN : {serialNumber}</div>
       <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} />
       <Wires
         wires={wires}

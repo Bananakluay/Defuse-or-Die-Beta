@@ -36,7 +36,7 @@ export type Instruction = {
   keyNum?: string;
   condition?: {
     time?: TimeCondition
-    serialNumber?: SerialCondition
+    serial?: SerialCondition
   }
 };
 

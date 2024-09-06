@@ -2,11 +2,15 @@ import { Instruction } from "../logic/Instruction";
 
 export const instructionData: Record<number, Instruction[]> = {
   0: [
-    { action: 'cut', wireColor: 'red' },
     {
       action: 'cut', wireColor: 'blue',
+    },
+
+    {
+      action: 'cut', wireColor: 'red',
       condition: {
-        time: { type: 'withIn', value: 5 }
+        serial: { contains: 'A' },
+        time: {type:'withIn' , value: 5}
       }
     },
     {
@@ -18,7 +22,7 @@ export const instructionData: Record<number, Instruction[]> = {
     {
       action: 'pull', fuseName: 'F1',
       condition: {
-        time: { type: 'at', value: 5 }
+        time: { type: 'withIn', value: 5 }
       }
     },
     {
