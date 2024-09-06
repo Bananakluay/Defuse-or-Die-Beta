@@ -7,13 +7,14 @@ import FusePanel from "./FusePanel";
 import '../styles/Bomb.css'
 import { generateCode } from "../utils/generate";
 import ElectronicPanel from "./ElectronicPanel";
+import PushButton from "./PushButton";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
 };
 
 function Bomb({ onDefuse, onExplode }: Props) {
-  const [code, setCode] = useState(0)
+  const [code, setCode] = useState(1)
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(300);
   const [currentStep, setCurrentStep] = useState(0);
@@ -28,7 +29,6 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const fuses = ["F1", "F2", "F3"]
   const eComps = ["C1", "C2", "T1", "T2"]
   const switches = ["SB1", "SB2"]
-
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
   const [pulledEComps, setPulledEComps] = useState<string[]>([]);
@@ -37,6 +37,9 @@ function Bomb({ onDefuse, onExplode }: Props) {
     SB2: false,
   });
 
+  const [isPressed, setIsPressed] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+
   // Function to generate a new code different from the previous one
   const generateNewCode = () => {
     let newCode;
@@ -44,7 +47,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
       newCode = generateCode()
     } while (previousCodes.includes(newCode))
 
-    setPreviousCodes(prev => [...prev, newCode]) // Add the new code to previous codes
+    setPreviousCodes(prev => [...prev, newCode])
     setCode(newCode) // Set the new code
     setCurrentStep(0)
   };
@@ -84,6 +87,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
       generateNewCode()
     }
   }
+
   const validateStep = (condition: boolean) => {
     if (condition) {
       setCurrentStep(prev => prev + 1);
@@ -189,6 +193,27 @@ function Bomb({ onDefuse, onExplode }: Props) {
     validateStep(valid && checkTimeCondition(instruction.condition?.time));
   }
 
+  const handleButtonPressed = () => {
+    const instruction = instructions[currentStep]
+    const timeCondition = instruction.condition?.time
+    if (instruction.action === "press") {
+      validateStep(checkTimeCondition(timeCondition))
+    } else if (instruction.action === "hold") {
+      setStartTime(timeLeft)
+    } else {
+      console.log("What the funk is this?");
+    }
+  }
+
+  const handleButtonReleased = () => {
+    const instruction = instructions[currentStep]
+    const timeCondition = instruction.condition?.time
+    if (timeCondition && timeCondition.type === 'at') {
+      validateStep(checkTimeCondition(timeCondition))
+    } else {
+      validateStep(true)
+    }
+  }
   return (
     <>
       <div className="code">Code: {code}</div>
@@ -214,7 +239,14 @@ function Bomb({ onDefuse, onExplode }: Props) {
         pulledEComps={pulledEComps}
         onECompPull={handleECompPull}
       />
+
+      <PushButton
+        onPress={handleButtonPressed}
+        onRelease={handleButtonReleased}
+        onHold={() => { }}
+      />
     </>
+
 
   );
 }

@@ -28,6 +28,15 @@ export const instructionData: Record<number, Instruction[]> = {
       }
     },
   ],
+  1: [
+    { action: 'cut', wireColor: 'red' },
+    {
+      action: 'hold', pushButtonName: "PB",
+      condition: {
+        time: { type: 'at', value: 5 }
+      }
+    }
+  ],
   150: [
     { action: 'cut', wireColor: 'red' },
     { action: 'cut', wireColor: 'blue' },
