@@ -9,7 +9,7 @@ export type TimeCondition = {
 export type Instruction = {
   action: ActionType;
   wireColor?: string;
-  fuse?: string;
+  fuseName?: string;
   switchName?: string;
   eCompName?: string;
   pushButtonName?: string;

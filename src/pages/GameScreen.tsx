@@ -7,7 +7,7 @@ function GameScreen({ onEnd }: Probs) {
   return (
     <>
       <h1>GameScreen</h1>
-      <Bomb onDefuse={() => {alert("win")}} onExplode={() => { }}></Bomb>
+      <Bomb onDefuse={() => {alert("win")}} onExplode={() => {alert("SO NOOB")}}></Bomb>
     </>
   )
 }

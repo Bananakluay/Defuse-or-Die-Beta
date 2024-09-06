@@ -1,7 +1,7 @@
 import { TimeCondition } from '../logic/Instruction'
-export function checkTimeCondition(startTime: number, timeLeft: number, value: number, timeCondition: TimeCondition) {
+export function checkTimeCondition(startTime: number, timeLeft: number, value: number, type: TimeCondition["type"]) {
 
-  switch (timeCondition.type) {
+  switch (type) {
     case 'before':
       // Fail if the action was not completed before the time limit
       return timeLeft > startTime - value
