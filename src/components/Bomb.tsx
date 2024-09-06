@@ -20,27 +20,43 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const [code, setCode] = useState(0)
   const [serialNumber] = useState<string>(generateSerialNumber());
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(300000);
   const [currentStep, setCurrentStep] = useState(0);
   const [failure, setFailure] = useState(0);
   const [success, setSuccess] = useState(0);
   const [startTime, setStartTime] = useState<number>(0)
 
-  const maxSuccess = 3;
-  const maxFailure = 5;
+  useEffect(() => {
+    generateNewCode()
+  }, [])
+
+  const maxSuccess = 20;
+  const maxFailure = 20;
 
   const wires = ["red", "blue", "green", "black", "pink"]
-  const fuses = ["F1", "F2", "F3"]
-  const eComps = ["C1", "C2", "T1", "T2"]
-  const switches = ["SB1", "SB2"]
-  const batteries = ["B1", "B2", "B3"]
+  const fuses = ["fuse_1", "fuse_2", "fuse_3"]
+  const eComps = [
+    "com_transister_brown",
+    "com_transister_black",
+    "com_transister_blue",
+    "com_resister1",
+    "com_resister2",
+    "com_capaciter1",
+    "com_capaciter2",
+    "com_capaciter3",
+    "chip-big",
+    "chip-small",
+    "chip-main"
+  ]
+  const switches = ["switch_button_1", "swtich_button_2"]
+  const batteries = ["battery_1", "battery_2", "battery_3"]
 
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
   const [pulledEComps, setPulledEComps] = useState<string[]>([]);
   const [pulledBatteries, setPUlledBatteries] = useState<string[]>([]);
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({
-    SB1: true,
+    SB1: false,
     SB2: false,
   });
 
@@ -162,7 +178,6 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
   useEffect(() => {
     console.log(instructions[currentStep]);
-
     setStartTime(timeLeft)
     autoSkip()
     handleSuccess()
@@ -172,13 +187,16 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
   // current instruction has time withIn
   useEffect(() => {
+
     const instruction = instructions[currentStep]
-    const timeCondition = instruction.condition?.time
+    const timeCondition = instruction?.condition?.time
     if (timeCondition && timeCondition.type === 'withIn') {
       if (!checkTimeCondition(timeCondition, timeLeft, startTime)) {
         handleFailure()
       }
     }
+    console.log(instructions[currentStep]);
+
   }, [timeLeft])
 
 

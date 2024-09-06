@@ -1,8 +1,8 @@
 import { SerialCondition, TimeCondition } from "./Instruction";
 
 // Helper to check if time conditions are met
-export const checkTimeCondition = (timeCondition: TimeCondition | undefined, timeLeft:number, startTime:number) => {
-if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.value) {
+export const checkTimeCondition = (timeCondition: TimeCondition | undefined, timeLeft: number, startTime: number) => {
+  if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.value) {
     return false;
   }
   if (timeCondition?.type === 'at' && !timeLeft.toString().includes(timeCondition.value.toString())) {
@@ -11,7 +11,6 @@ if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.va
   }
   return true;
 };
-
 
 
 export const checkSerialCondition = (serialCondition: SerialCondition | undefined, serialNumber: string): boolean => {
@@ -43,6 +42,11 @@ export const checkSerialCondition = (serialCondition: SerialCondition | undefine
 
   // Check for the 'endsWith' condition
   if (serialCondition.endsWith && !serialNumber.endsWith(serialCondition.endsWith)) {
+    return false;
+  }
+
+  // Check for the 'notEndsWith' condition
+  if (serialCondition.notEndsWith && serialNumber.endsWith(serialCondition.notEndsWith)) {
     return false;
   }
 

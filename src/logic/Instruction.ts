@@ -23,6 +23,7 @@ export type SerialCondition = {
   even?: boolean;    
   startsWith?: string; 
   endsWith?: string;  
+  notEndsWith?: string;
   notContains?: string;
 };
 
