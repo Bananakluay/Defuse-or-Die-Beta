@@ -39,10 +39,10 @@ export const instructionData: Record<number, Instruction[]> = {
   ],
   150: [
     { action: 'pull', fuseName: 'F1' },
-    {action: 'keyPress' , keyNum:'1'},
-    {action: 'keyPress' , keyNum:'5'},
-    {action: 'keyPress' , keyNum:'2'},
-    {action: 'keyPress' , keyNum:'1'}
+    { action: 'keyPress', keyNum: '1' },
+    { action: 'keyPress', keyNum: '5' },
+    { action: 'keyPress', keyNum: '2' },
+    { action: 'keyPress', keyNum: '1' }
   ],
   220: [
     { action: 'turnOff', switchName: 'SB1' },
@@ -64,6 +64,6 @@ export const instructionData: Record<number, Instruction[]> = {
     { action: 'cut', wireColor: 'pink' }
   ],
   770: [
-    {action: 'keyPress', keyNum: '1'}
+    { action: 'keyPress', keyNum: '1' }
   ]
 };
