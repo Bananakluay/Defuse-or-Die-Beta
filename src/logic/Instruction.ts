@@ -33,6 +33,7 @@ export type Instruction = {
   switchName?: string;
   eCompName?: string;
   pushButtonName?: string;
+  batteryName?: string;
   keyNum?: string;
   condition?: {
     time?: TimeCondition

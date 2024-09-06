@@ -10,6 +10,7 @@ import ElectronicPanel from "./ElectronicPanel";
 import PushButton from "./PushButton";
 import Numpad from "./Numpad";
 import { checkSerialCondition, checkTimeCondition } from "../logic/Condition";
+import BatterySlot from "./BetterySlot";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
@@ -17,7 +18,7 @@ type Props = {
 
 function Bomb({ onDefuse, onExplode }: Props) {
   const [code, setCode] = useState(0)
-  const [serialNumber, setSerialNumber] = useState<string>("SA1234");
+  const [serialNumber] = useState<string>(generateSerialNumber());
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(300);
   const [currentStep, setCurrentStep] = useState(0);
@@ -32,9 +33,12 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const fuses = ["F1", "F2", "F3"]
   const eComps = ["C1", "C2", "T1", "T2"]
   const switches = ["SB1", "SB2"]
+  const batteries = ["B1", "B2", "B3"]
+
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
   const [pulledEComps, setPulledEComps] = useState<string[]>([]);
+  const [pulledBatteries, setPUlledBatteries] = useState<string[]>([]);
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({
     SB1: true,
     SB2: false,
@@ -128,6 +132,18 @@ function Bomb({ onDefuse, onExplode }: Props) {
       }
     }
 
+
+    // Check Battery pull condition
+    if (instruction.action === "pull" && instruction.batteryName) {
+      if (pulledBatteries.includes(instruction.batteryName)) {
+        console.log('Battery already pulled, skipping to next step');
+        setCurrentStep(prev => prev + 1);
+        return;
+      }
+    }
+
+
+
     // Check switch state
     const switchName = instruction.switchName;
     if (switchName) {
@@ -146,7 +162,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
   useEffect(() => {
     console.log(instructions[currentStep]);
-    
+
     setStartTime(timeLeft)
     autoSkip()
     handleSuccess()
@@ -193,6 +209,16 @@ function Bomb({ onDefuse, onExplode }: Props) {
 
     const instruction = instructions[currentStep];
     const valid = instruction?.action === "pull" && eCompName === instruction.eCompName;
+    validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
+  }
+
+  const handleBatteryPull = (batteryName: string) => {
+    if (pulledBatteries.includes(batteryName)) return;
+
+    setPUlledBatteries(prev => [...prev, batteryName]);
+
+    const instruction = instructions[currentStep];
+    const valid = instruction?.action === "pull" && batteryName === instruction.eCompName;
     validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
   }
 
@@ -268,8 +294,14 @@ function Bomb({ onDefuse, onExplode }: Props) {
         onHold={() => { }}
       />
       <Numpad onKeyPress={handleKeyPressed} />
-    </>
+      <BatterySlot
+        batteries={batteries}
+        pulledBatteries={pulledBatteries}
+        onBatteryPull={handleBatteryPull}
+      />
 
+
+    </>
 
   );
 }
