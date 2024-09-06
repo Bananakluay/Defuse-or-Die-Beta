@@ -1,6 +1,14 @@
-import { instructionData } from './instructionData.ts'
+import { instructionData } from '../data/instructionData.ts'
 
-export type ActionType = 'cut' | 'press' | 'hold' | 'release' | 'pull' | 'turnOn' | 'turnOff';
+export type ActionType =
+  'cut' |
+  'press' |
+  'hold' |
+  'release' |
+  'pull' |
+  'turnOn' |
+  'turnOff' |
+  'keyPress';
 
 export type TimeCondition = {
   type: 'withIn' | 'at';
@@ -13,6 +21,7 @@ export type Instruction = {
   switchName?: string;
   eCompName?: string;
   pushButtonName?: string;
+  keyNum?: string;
   condition?: {
     time: TimeCondition
     //other

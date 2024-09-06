@@ -8,13 +8,14 @@ import '../styles/Bomb.css'
 import { generateCode } from "../utils/generate";
 import ElectronicPanel from "./ElectronicPanel";
 import PushButton from "./PushButton";
+import Numpad from "./Numpad";
 type Props = {
   onDefuse: () => void;
   onExplode: () => void;
 };
 
 function Bomb({ onDefuse, onExplode }: Props) {
-  const [code, setCode] = useState(1)
+  const [code, setCode] = useState(150)
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(300);
   const [currentStep, setCurrentStep] = useState(0);
@@ -37,8 +38,6 @@ function Bomb({ onDefuse, onExplode }: Props) {
     SB2: false,
   });
 
-  const [isPressed, setIsPressed] = useState(false);
-  const [isHolding, setIsHolding] = useState(false);
 
   // Function to generate a new code different from the previous one
   const generateNewCode = () => {
@@ -214,6 +213,12 @@ function Bomb({ onDefuse, onExplode }: Props) {
       validateStep(true)
     }
   }
+
+  const handleKeyPressed = (key: string) => {
+    const instruction = instructions[currentStep]
+    const valid = instruction.action === 'keyPress' && instruction.keyNum === key
+    validateStep(valid)
+  }
   return (
     <>
       <div className="code">Code: {code}</div>
@@ -245,6 +250,7 @@ function Bomb({ onDefuse, onExplode }: Props) {
         onRelease={handleButtonReleased}
         onHold={() => { }}
       />
+      <Numpad onKeyPress={handleKeyPressed} />
     </>
 
 

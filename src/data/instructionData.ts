@@ -1,4 +1,4 @@
-import { Instruction } from "./Instruction";
+import { Instruction } from "../logic/Instruction";
 
 export const instructionData: Record<number, Instruction[]> = {
   0: [
@@ -38,25 +38,16 @@ export const instructionData: Record<number, Instruction[]> = {
     }
   ],
   150: [
-    { action: 'cut', wireColor: 'red' },
-    { action: 'cut', wireColor: 'blue' },
-    { action: 'turnOn', switchName: 'SB1' },
-    { action: 'pull', fuseName: 'F1' }
+    { action: 'pull', fuseName: 'F1' },
+    {action: 'keyPress' , keyNum:'1'},
+    {action: 'keyPress' , keyNum:'5'},
+    {action: 'keyPress' , keyNum:'2'},
+    {action: 'keyPress' , keyNum:'1'}
   ],
   220: [
     { action: 'turnOff', switchName: 'SB1' },
     { action: 'cut', wireColor: 'red' },
     { action: 'cut', wireColor: 'green' }
-  ],
-  330: [
-    { action: 'cut', wireColor: 'black' },
-    {
-      action: 'pull', fuseName: 'F2',
-      condition: {
-        time: { type: 'before', value: 30 }
-      }
-    },
-    { action: 'turnOn', switchName: 'SB2' }
   ],
   440: [
     { action: 'turnOn', switchName: 'SB2' },
@@ -71,5 +62,8 @@ export const instructionData: Record<number, Instruction[]> = {
   660: [
     { action: 'pull', eCompName: 'C1' },
     { action: 'cut', wireColor: 'pink' }
+  ],
+  770: [
+    {action: 'keyPress', keyNum: '1'}
   ]
 };

@@ -1,4 +1,4 @@
-import { instructionData } from "../logic/instructionData";
+import { instructionData } from "../data/instructionData";
 
 export function generateCode(): number {
   const codes = Object.keys(instructionData).map(Number); // Get an array of the codes as numbers
