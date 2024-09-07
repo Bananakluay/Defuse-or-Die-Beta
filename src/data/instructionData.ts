@@ -14,7 +14,7 @@ export const instructionData: Record<number, Instruction[]> = {
     { action: 'turnOn', switchName: 'switch_button2', condition: { time: { type: 'at', value: 1 } } }
   ],
   6: [
-    { action: 'pull', eCompName: 'com_resister2' }
+    { action: 'pull', eCompName: 'com_resistor2' }
   ],
   9: [
     { action: 'press', pushButtonName: 'push_button' },
@@ -127,7 +127,7 @@ export const instructionData: Record<number, Instruction[]> = {
     { action: 'press', pushButtonName: 'push_button', condition: { time: { type: 'at', value: 8 } } }
   ],
   8796: [
-    { action: 'pull', eCompName: 'com_resister1' },
+    { action: 'pull', eCompName: 'com_resistor1' },
     { action: 'press', pushButtonName: 'push_button' },
     { action: 'cut', wireColor: 'red', condition: { time: { type: 'at', value: 2 } } },
     { action: 'hold', pushButtonName: 'push_button', condition: { time: { type: 'at', value: 9 } } },
