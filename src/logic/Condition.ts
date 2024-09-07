@@ -2,7 +2,7 @@ import { SerialCondition, TimeCondition } from "./Instruction";
 
 // Helper to check if time conditions are met
 export const checkTimeCondition = (timeCondition: TimeCondition | undefined, timeLeft:number, startTime:number) => {
-if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.value) {
+if (timeCondition?.type === 'withIn' && timeLeft <= startTime - timeCondition.value*1000) {
     return false;
   }
   if (timeCondition?.type === 'at' && !timeLeft.toString().includes(timeCondition.value.toString())) {
