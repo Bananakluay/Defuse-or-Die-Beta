@@ -17,7 +17,7 @@ function BatterySlot({ batteries, pulledBatteries, onBatteryPull }: Props) {
           disabled={pulledBatteries.includes(battery)} // Disable if already pulled
           className={pulledBatteries.includes(battery) ? 'fuse-pulled' : 'fuse-button'}
         >
-          Battery
+          {battery}
         </button>
       ))}
     </div>

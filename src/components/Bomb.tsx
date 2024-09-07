@@ -17,7 +17,7 @@ type Props = {
 };
 
 function Bomb({ onDefuse, onExplode }: Props) {
-  const [code, setCode] = useState(0)
+  const [code, setCode] = useState(1)
   const [serialNumber] = useState<string>(generateSerialNumber());
   const [previousCodes, setPreviousCodes] = useState<number[]>([])
   const [timeLeft, setTimeLeft] = useState(300);
@@ -29,23 +29,37 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const maxSuccess = 3;
   const maxFailure = 5;
 
-  const wires = ["red", "blue", "green", "black", "pink"]
-  const fuses = ["F1", "F2", "F3"]
-  const eComps = ["C1", "C2", "T1", "T2"]
-  const switches = ["SB1", "SB2"]
-  const batteries = ["B1", "B2", "B3"]
+  const wires = ["red", "blue", "green", "yellow", "pink"]
+  const fuses = ["fuse1", "fuse2", "fuse3"]
+  const eComps = [
+    "com_transistor_brown",
+    "com_transistor_black",
+    "com_transistor_blue",
+    "com_resister1",
+    "com_resister2",
+    "com_capacitor1",
+    "com_capacitor2",
+    "com_capacitor3",
+    "chip-big",
+    "chip-small",
+    "chip-main"
+  ]
+  const switches = ["switch_button1", "switch_button2"]
+  const batteries = ["battery1", "battery2", "battery3"]
 
   const [cutWires, setCutWires] = useState<string[]>([]);
   const [pulledFuses, setPulledFuses] = useState<string[]>([]);
   const [pulledEComps, setPulledEComps] = useState<string[]>([]);
-  const [pulledBatteries, setPUlledBatteries] = useState<string[]>([]);
+  const [pulledBatteries, setPulledBatteries] = useState<string[]>([]);
   const [switchStates, setSwitchStates] = useState<{ [key: string]: boolean }>({
-    SB1: true,
+    SB1: false,
     SB2: false,
   });
 
-
-  // Function to generate a new code different from the previous one
+  useEffect(()=>{
+    generateNewCode()
+  },[])
+   //Function to generate a new code different from the previous one
   const generateNewCode = () => {
     let newCode;
     do {
@@ -215,10 +229,10 @@ function Bomb({ onDefuse, onExplode }: Props) {
   const handleBatteryPull = (batteryName: string) => {
     if (pulledBatteries.includes(batteryName)) return;
 
-    setPUlledBatteries(prev => [...prev, batteryName]);
+    setPulledBatteries(prev => [...prev, batteryName]);
 
     const instruction = instructions[currentStep];
-    const valid = instruction?.action === "pull" && batteryName === instruction.eCompName;
+    const valid = instruction?.action === "pull" && batteryName === instruction.batteryName;
     validateStep(valid && checkTimeCondition(instruction.condition?.time, timeLeft, startTime));
   }
 
